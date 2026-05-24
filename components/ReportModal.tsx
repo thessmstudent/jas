@@ -8,14 +8,7 @@ import 'leaflet/dist/leaflet.css';
 const CENTER: [number, number] = [36.0194, -78.9207];
 
 const LOCATIONS = [
-  'Main Building', 'Zeiss', 'Library', 'Gym', 'Cafeteria',
-  'Dorms', 'Davies', 'Weinstein', 'The Pit', 'Hackspace',
-];
-
-const THREAT_OPTIONS = [
-  { value: 'Spotted',    label: '👀 Spotted',    desc: 'Seen, not approaching',      color: '#22d3ee' },
-  { value: 'Approaching', label: '⚠️ Approaching', desc: 'Moving in your direction',  color: '#f59e0b' },
-  { value: 'RUN',        label: '🚨 RUN',         desc: 'Immediate evacuation NOW',   color: '#ef4444' },
+  'Bryan', 'Beall', 'Library', 'PFM (Cafeteria)', 'Watts', 'Hill', 'Hunt', 'ETC',
 ];
 
 const pinIcon = L.divIcon({
@@ -40,8 +33,6 @@ export default function ReportModal({ open, onClose, onSubmit }: Props) {
   const [lng, setLng] = useState(CENTER[1]);
   const [pinned, setPinned] = useState(false);
   const [description, setDescription] = useState('');
-  const [reporterName, setReporterName] = useState('');
-  const [threat, setThreat] = useState('Spotted');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -51,7 +42,7 @@ export default function ReportModal({ open, onClose, onSubmit }: Props) {
   useEffect(() => {
     if (!open) return;
     setLocationName(''); setLat(CENTER[0]); setLng(CENTER[1]); setPinned(false);
-    setDescription(''); setReporterName(''); setThreat('Spotted');
+    setDescription('');
     setPhotoFile(null); setPhotoPreview(null); setError(null);
   }, [open]);
 
@@ -85,8 +76,8 @@ export default function ReportModal({ open, onClose, onSubmit }: Props) {
       fd.set('lat', String(lat));
       fd.set('lng', String(lng));
       fd.set('description', description);
-      fd.set('reporter_name', reporterName.trim() || 'Anonymous Witness');
-      fd.set('threat_level', threat);
+      fd.set('reporter_name', 'Anonymous Witness');
+      fd.set('threat_level', 'Spotted');
       if (photoFile) fd.set('photo', photoFile);
       const res = await fetch('/api/sightings', { method: 'POST', body: fd });
       if (!res.ok) throw new Error();
@@ -160,26 +151,10 @@ export default function ReportModal({ open, onClose, onSubmit }: Props) {
                 </div>
               </div>
 
-              {/* Threat level */}
-              <div>
-                <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-[0.38em] text-slate-500">Threat Level *</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {THREAT_OPTIONS.map((opt) => (
-                    <button key={opt.value} type="button" onClick={() => setThreat(opt.value)}
-                      style={threat === opt.value ? { borderColor: opt.color, color: opt.color, boxShadow: `0 0 12px ${opt.color}30` } : {}}
-                      className={`flex flex-col items-center gap-1 rounded-xl border py-3 font-mono text-xs transition ${threat === opt.value ? 'bg-slate-900/80' : 'border-slate-700/40 text-slate-500 hover:border-slate-600'}`}>
-                      <span className="text-xl">{opt.label.split(' ')[0]}</span>
-                      <span className="font-bold text-[10px] uppercase tracking-wider">{opt.label.split(' ').slice(1).join(' ')}</span>
-                      <span className="text-center text-[8px] leading-tight opacity-60">{opt.desc}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Description */}
               <div>
                 <label className="mb-1.5 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.38em] text-slate-500">
-                  <span>Field Report</span>
+                  <span>Notes</span>
                   <span className="normal-case tabular-nums">{description.length}/280</span>
                 </label>
                 <textarea value={description} onChange={(e) => setDescription(e.target.value.slice(0, 280))}
@@ -198,14 +173,6 @@ export default function ReportModal({ open, onClose, onSubmit }: Props) {
                     : <><span className="text-2xl">📷</span><p className="font-mono text-[10px] text-slate-600">Click to attach photo</p></>}
                 </div>
                 <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
-              </div>
-
-              {/* Reporter name */}
-              <div>
-                <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-[0.38em] text-slate-500">Agent Callsign</label>
-                <input type="text" value={reporterName} onChange={(e) => setReporterName(e.target.value)}
-                  placeholder="Anonymous Witness" maxLength={40}
-                  className="w-full rounded-xl border border-slate-700/50 bg-[#101013] px-4 py-2.5 font-mono text-sm text-white placeholder-slate-700 outline-none focus:border-red-800/60" />
               </div>
 
               {error && (

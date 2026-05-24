@@ -22,8 +22,7 @@ const THREAT_META: Record<string, { label: string; color: string; bg: string }> 
 };
 
 const LOCATIONS = [
-  'All Locations', 'Main Building', 'Zeiss', 'Library', 'Gym',
-  'Cafeteria', 'Dorms', 'Davies', 'Weinstein', 'The Pit', 'Hackspace',
+  'All Locations', 'Bryan', 'Beall', 'Library', 'PFM (Cafeteria)', 'Watts', 'Hill', 'Hunt', 'ETC',
 ];
 
 function timeAgo(iso: string) {
