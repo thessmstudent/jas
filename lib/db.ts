@@ -43,23 +43,25 @@ export type Sighting = {
   threat_level: 'Spotted' | 'Approaching' | 'RUN';
 };
 
-export async function getSightings(all = false): Promise<Sighting[]> {
+export async function getSightings(_all = false): Promise<Sighting[]> {
   await ready;
-  if (all) {
-    const res = await client.execute('SELECT * FROM sightings ORDER BY created_at DESC');
-    return res.rows as unknown as Sighting[];
-  }
-  const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+  const midnight = new Date();
+  midnight.setUTCHours(0, 0, 0, 0);
   const res = await client.execute({
     sql: 'SELECT * FROM sightings WHERE created_at >= ? ORDER BY created_at DESC',
-    args: [cutoff],
+    args: [midnight.toISOString()],
   });
   return res.rows as unknown as Sighting[];
 }
 
 export async function getLatestSighting(): Promise<Sighting | null> {
   await ready;
-  const res = await client.execute('SELECT * FROM sightings ORDER BY created_at DESC LIMIT 1');
+  const midnight = new Date();
+  midnight.setUTCHours(0, 0, 0, 0);
+  const res = await client.execute({
+    sql: 'SELECT * FROM sightings WHERE created_at >= ? ORDER BY created_at DESC LIMIT 1',
+    args: [midnight.toISOString()],
+  });
   return (res.rows[0] as unknown as Sighting) ?? null;
 }
 
