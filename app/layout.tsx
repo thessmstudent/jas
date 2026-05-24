@@ -1,9 +1,17 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import BottomNav from '@/components/BottomNav';
 
 export const metadata: Metadata = {
   title: 'J.A.S. — Jedi Alert System',
-  description: 'Crowdsourced monster sighting tracker for NCSSM.',
+  description: 'Crowdsourced sighting tracker for NCSSM.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -11,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         {children}
+        <BottomNav />
       </body>
     </html>
   );

@@ -46,15 +46,15 @@ export default async function StatsPage() {
   const jaiLabel = jai >= 70 ? 'CRITICAL' : jai >= 40 ? 'ELEVATED' : 'LOW';
 
   return (
-    <main className="min-h-screen bg-[#060606] text-white">
+    <main className="min-h-[100dvh] bg-[#060606] pb-16 text-white lg:pb-8">
       {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-red-950/30 bg-[#060606]/95 px-6 py-4 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <header className="sticky top-0 z-20 border-b border-red-950/30 bg-[#060606]/95 px-4 py-3 backdrop-blur-sm lg:px-6 lg:py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div>
-            <p className="font-mono text-[9px] uppercase tracking-[0.5em] text-amber-400/60">J.A.S. // INTEL DASHBOARD</p>
-            <h1 className="mt-1 font-mono text-2xl font-bold tracking-tight text-white">System Status</h1>
+            <p className="font-mono text-[9px] uppercase tracking-[0.5em] text-amber-400/60">J.A.S. // Stats</p>
+            <h1 className="font-mono text-lg font-bold tracking-tight text-white lg:text-2xl">System Status</h1>
           </div>
-          <nav className="flex flex-wrap items-center gap-2">
+          <nav className="hidden items-center gap-2 lg:flex">
             <Link href="/" className="rounded-xl border border-slate-700/40 bg-slate-900/60 px-4 py-2 font-mono text-xs uppercase tracking-widest text-slate-400 transition hover:border-red-800/40 hover:text-white">Map</Link>
             <Link href="/sightings" className="rounded-xl border border-slate-700/40 bg-slate-900/60 px-4 py-2 font-mono text-xs uppercase tracking-widest text-slate-400 transition hover:border-red-800/40 hover:text-white">Feed</Link>
             <Link href="/stats" className="rounded-xl border border-red-700/50 bg-red-950/20 px-4 py-2 font-mono text-xs uppercase tracking-widest text-red-300">Stats</Link>
@@ -62,7 +62,7 @@ export default async function StatsPage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 lg:px-6">
+      <div className="mx-auto max-w-7xl space-y-4 px-4 py-4 lg:space-y-6 lg:px-6 lg:py-8">
 
         {/* Top KPI row */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

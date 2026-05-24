@@ -112,12 +112,11 @@ export default function MapDashboard() {
     return () => clearInterval(id);
   }, []);
 
-  const latestTime = useMemo(() => (latest ? timeAgo(latest.created_at) : 'No reports'), [latest]);
+  const latestTime = useMemo(() => (latest ? timeAgo(latest.created_at) : null), [latest]);
   const topFive = sightings.slice(0, 5);
 
   return (
     <div className="relative flex h-full min-h-[600px]">
-      {/* Ripple keyframe injected inline */}
       <style>{`
         @keyframes jasRipple {
           0% { transform: scale(1); opacity: 0.7; }
@@ -125,9 +124,8 @@ export default function MapDashboard() {
         }
       `}</style>
 
-      {/* ── Left sidebar ──────────────────────────────────── */}
-      <aside className="relative z-10 flex w-72 flex-shrink-0 flex-col gap-4 overflow-y-auto border-r border-red-950/30 bg-[#080808]/95 p-5 backdrop-blur-sm">
-        {/* Branding */}
+      {/* ── Desktop sidebar (hidden on mobile) ────────────── */}
+      <aside className="relative z-10 hidden w-72 flex-shrink-0 flex-col gap-4 overflow-y-auto border-r border-red-950/30 bg-[#080808]/95 p-5 backdrop-blur-sm lg:flex">
         <div className="border-b border-red-950/30 pb-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.45em] text-amber-400/80">
             J.A.S. // INTEL DASHBOARD
@@ -139,20 +137,18 @@ export default function MapDashboard() {
           <p className="mt-1 font-mono text-[11px] text-slate-400">JEDI ALERT SYSTEM // NCSSM</p>
         </div>
 
-        {/* Live status */}
         <div className="flex items-center gap-2 rounded-xl border border-red-900/30 bg-red-950/20 px-3 py-2">
           <span className="h-2 w-2 animate-pulse rounded-full bg-red-500 shadow-[0_0_6px_#ef4444]" />
           <span className="font-mono text-xs uppercase tracking-widest text-red-400">LIVE</span>
           <span className="ml-auto font-mono text-[10px] text-slate-500">30s refresh</span>
         </div>
 
-        {/* Last known */}
         <div className="rounded-xl border border-amber-900/30 bg-[#0f0e08]/90 p-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.38em] text-amber-400/70">Last Known Position</p>
           <p className="mt-2 font-mono text-lg font-semibold text-white">
             {latest ? latest.location_name : '— UNKNOWN —'}
           </p>
-          <p className="mt-1 font-mono text-xs text-amber-300/60">{latestTime}</p>
+          <p className="mt-1 font-mono text-xs text-amber-300/60">{latestTime ?? 'No reports today'}</p>
           {latest && (
             <p className="mt-2 font-mono text-[10px] text-slate-500">
               {latest.lat.toFixed(5)}, {latest.lng.toFixed(5)}
@@ -160,20 +156,16 @@ export default function MapDashboard() {
           )}
         </div>
 
-        {/* Recent sightings */}
         <div className="flex-1">
           <p className="font-mono text-[10px] uppercase tracking-[0.38em] text-slate-500">Recent Reports</p>
           <div className="mt-3 space-y-2">
             {topFive.length === 0 && (
-              <p className="font-mono text-xs text-slate-600">No sightings in last 48h</p>
+              <p className="font-mono text-xs text-slate-600">No sightings today</p>
             )}
             {topFive.map((s) => {
               const badge = threatBadge(s.threat_level);
               return (
-                <div
-                  key={s.id}
-                  className="rounded-xl border border-slate-800/60 bg-[#0d0d0f]/80 p-3 transition hover:border-red-900/50"
-                >
+                <div key={s.id} className="rounded-xl border border-slate-800/60 bg-[#0d0d0f]/80 p-3 transition hover:border-red-900/50">
                   <div className="flex items-start justify-between gap-2">
                     <p className="font-mono text-xs font-semibold text-white">{s.location_name}</p>
                     <span className="font-mono text-[10px]" style={{ color: badge.color }}>{badge.label}</span>
@@ -190,7 +182,6 @@ export default function MapDashboard() {
           </div>
         </div>
 
-        {/* Heat map toggle */}
         <button
           onClick={() => setShowHeat((v) => !v)}
           className="rounded-xl border border-slate-700/60 bg-slate-900/70 px-3 py-2 font-mono text-[11px] uppercase tracking-widest text-slate-300 transition hover:border-amber-700/50 hover:text-amber-300"
@@ -201,6 +192,25 @@ export default function MapDashboard() {
 
       {/* ── Map ───────────────────────────────────────────── */}
       <div className="relative flex-1">
+
+        {/* Mobile: floating last-known card */}
+        <div className="absolute left-3 right-3 top-3 z-[1000] lg:hidden">
+          <div className="rounded-2xl border border-red-950/40 bg-[#080808]/90 p-3 backdrop-blur-md">
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500 shadow-[0_0_6px_#ef4444]" />
+              <span className="font-mono text-[9px] uppercase tracking-widest text-red-400">Live</span>
+              <span className="ml-auto font-mono text-[9px] text-slate-600">30s</span>
+            </div>
+            <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.3em] text-amber-400/60">Last Known</p>
+            <p className="font-mono text-base font-bold leading-tight text-white">
+              {latest ? latest.location_name : '— No reports today —'}
+            </p>
+            {latestTime && (
+              <p className="font-mono text-[9px] text-amber-300/50">{latestTime}</p>
+            )}
+          </div>
+        </div>
+
         <MapContainer
           center={CENTER}
           zoom={17}
@@ -233,18 +243,18 @@ export default function MapDashboard() {
           )}
         </MapContainer>
 
-        {/* REPORT button — floating over the map */}
+        {/* REPORT button */}
         <button
           onClick={() => setModalOpen(true)}
-          className="absolute bottom-8 right-8 z-[1000] flex items-center gap-2 rounded-2xl bg-red-600 px-6 py-3.5 font-mono text-sm font-bold uppercase tracking-[0.22em] text-white shadow-[0_0_32px_rgba(239,68,68,0.5)] transition hover:bg-red-500 hover:shadow-[0_0_48px_rgba(239,68,68,0.7)] active:scale-95"
+          className="absolute bottom-5 right-5 z-[1000] flex items-center gap-2 rounded-2xl bg-red-600 px-5 py-3 font-mono text-sm font-bold uppercase tracking-[0.22em] text-white shadow-[0_0_32px_rgba(239,68,68,0.5)] transition hover:bg-red-500 active:scale-95 lg:bottom-8 lg:right-8 lg:px-6 lg:py-3.5"
         >
           <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
           REPORT JEDI
         </button>
 
         {/* Coordinates watermark */}
-        <div className="absolute bottom-4 left-4 z-[1000] font-mono text-[10px] text-slate-600 select-none">
-          NCSSM // 36.0194°N 78.9207°W // DURHAM NC
+        <div className="absolute bottom-4 left-4 z-[1000] select-none font-mono text-[10px] text-slate-600">
+          NCSSM // 36.0194°N 78.9207°W
         </div>
       </div>
 
