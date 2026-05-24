@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  font-family: ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
+  background: #060606;
+  color: #f7f7f7;
+}
+
+html, body {
+  min-height: 100%;
+  background: #040404;
+  color: #f4f4f5;
+}
+
+body { margin: 0; padding: 0; }
+* { box-sizing: border-box; }
+body, input, button, textarea, select { font: inherit; }
+
+::selection { background: rgba(220, 38, 38, 0.4); color: #fff; }
+
+/* ── Leaflet ── */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background: #080808;
+}
+
+/* Dark tint over OSM tiles */
+.leaflet-tile-pane {
+  filter: brightness(0.70) saturate(0.45) hue-rotate(195deg);
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #0f0f12 !important;
+  color: #f9fafb;
+  border: 1px solid rgba(127,29,29,0.55);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.75);
+}
+
+.leaflet-popup-content { margin: 10px 14px; }
+
+.leaflet-control-attribution {
+  background: rgba(0,0,0,0.45) !important;
+  color: #333 !important;
+  font-size: 9px !important;
+}
+.leaflet-control-attribution a { color: #444 !important; }
+
+/* Legacy pulse classes (kept for compat) */
+.pulse-marker {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: rgba(239,68,68,0.95);
+  box-shadow: 0 0 0 6px rgba(239,68,68,0.3);
+  animation: pulseRed 1.8s ease-in-out infinite;
+}
+
+@keyframes pulseRed {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* Thin scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #222; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #333; }
