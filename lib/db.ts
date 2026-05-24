@@ -2,7 +2,8 @@ import { DatabaseSync } from 'node:sqlite';
 import { join } from 'path';
 import { mkdirSync, existsSync } from 'fs';
 
-const dataDir = join(process.cwd(), 'data');
+// On Vercel the project root is read-only; use /tmp instead
+const dataDir = process.env.VERCEL ? '/tmp' : join(process.cwd(), 'data');
 if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
 
 const db = new DatabaseSync(join(dataDir, 'jas.db'));
