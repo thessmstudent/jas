@@ -130,7 +130,7 @@ export default function MapDashboard() {
         {/* Branding */}
         <div className="border-b border-red-950/30 pb-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.45em] text-amber-400/80">
-            CLASSIFICATION: STUDENT-EYES-ONLY
+            J.A.S. // INTEL DASHBOARD
           </p>
           <h2 className="mt-3 font-mono text-2xl font-bold tracking-tighter text-white">
             J<span className="text-red-500">.</span>A<span className="text-red-500">.</span>S

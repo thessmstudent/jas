@@ -8,7 +8,7 @@ import 'leaflet/dist/leaflet.css';
 const CENTER: [number, number] = [36.0194, -78.9207];
 
 const LOCATIONS = [
-  'Bryan', 'Beall', 'Library', 'PFM (Cafeteria)', 'Watts', 'Hill', 'Hunt', 'ETC',
+  'Bryan', 'Beall', 'Library', 'PFM', 'Watts', 'Hill', 'Hunt', 'ETC', 'PEC', 'Reynolds', 'Royal', 'Field',
 ];
 
 const pinIcon = L.divIcon({

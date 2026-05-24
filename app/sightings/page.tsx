@@ -22,7 +22,7 @@ const THREAT_META: Record<string, { label: string; color: string; bg: string }> 
 };
 
 const LOCATIONS = [
-  'All Locations', 'Bryan', 'Beall', 'Library', 'PFM (Cafeteria)', 'Watts', 'Hill', 'Hunt', 'ETC',
+  'All Locations', 'Bryan', 'Beall', 'Library', 'PFM', 'Watts', 'Hill', 'Hunt', 'ETC', 'PEC', 'Reynolds', 'Royal', 'Field',
 ];
 
 function timeAgo(iso: string) {
