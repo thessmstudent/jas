@@ -1,27 +1,13 @@
-import { DatabaseSync } from 'node:sqlite';
+import { createClient } from '@libsql/client';
 import { join } from 'path';
 import { mkdirSync, existsSync } from 'fs';
 
 const dataDir = join(process.cwd(), 'data');
 if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
 
-const db = new DatabaseSync(join(dataDir, 'jas.db'));
-db.exec('PRAGMA journal_mode = WAL');
-db.exec(`
-  CREATE TABLE IF NOT EXISTS sightings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at TEXT NOT NULL,
-    location_name TEXT NOT NULL,
-    lat REAL NOT NULL,
-    lng REAL NOT NULL,
-    description TEXT,
-    photo_path TEXT,
-    reporter_name TEXT NOT NULL,
-    threat_level TEXT NOT NULL
-  );
-`);
-
-db.prepare('DELETE FROM sightings').run();
+const client = process.env.TURSO_DATABASE_URL
+  ? createClient({ url: process.env.TURSO_DATABASE_URL, authToken: process.env.TURSO_AUTH_TOKEN })
+  : createClient({ url: `file:${join(dataDir, 'jas.db')}` });
 
 const now = Date.now();
 const hr = 3_600_000;
@@ -121,22 +107,29 @@ const sightings = [
   },
 ];
 
-const stmt = db.prepare(
-  'INSERT INTO sightings (created_at, location_name, lat, lng, description, photo_path, reporter_name, threat_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-);
-
-for (const s of sightings) {
-  stmt.run(
-    new Date(now - s.offset).toISOString(),
-    s.location_name,
-    s.lat,
-    s.lng,
-    s.description,
-    null,
-    s.reporter_name,
-    s.threat_level
-  );
+async function main() {
+  await client.execute(`
+    CREATE TABLE IF NOT EXISTS sightings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      created_at TEXT NOT NULL,
+      location_name TEXT NOT NULL,
+      lat REAL NOT NULL,
+      lng REAL NOT NULL,
+      description TEXT,
+      photo_path TEXT,
+      reporter_name TEXT NOT NULL,
+      threat_level TEXT NOT NULL
+    )
+  `);
+  await client.execute('DELETE FROM sightings');
+  for (const s of sightings) {
+    await client.execute({
+      sql: 'INSERT INTO sightings (created_at, location_name, lat, lng, description, photo_path, reporter_name, threat_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      args: [new Date(now - s.offset).toISOString(), s.location_name, s.lat, s.lng, s.description, null, s.reporter_name, s.threat_level],
+    });
+  }
+  console.log(`✅  Seeded ${sightings.length} sightings`);
+  client.close();
 }
 
-console.log(`✅  Seeded ${sightings.length} sightings into data/jas.db`);
-db.close();
+main();

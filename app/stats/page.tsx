@@ -10,8 +10,8 @@ function fmt12(hour: number) {
   return `${hour - 12} PM`;
 }
 
-export default function StatsPage() {
-  const sightings = getSightings(true);
+export default async function StatsPage() {
+  const sightings = await getSightings(true);
   const total = sightings.length;
 
   /* ── threat breakdown ───────────────────────────────── */

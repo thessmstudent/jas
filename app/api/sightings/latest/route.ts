@@ -4,7 +4,7 @@ import { getLatestSighting } from '@/lib/db';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const latest = getLatestSighting();
+  const latest = await getLatestSighting();
   if (!latest) {
     return NextResponse.json({ sighting: null });
   }

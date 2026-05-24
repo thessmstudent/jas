@@ -1,15 +1,23 @@
-import { DatabaseSync } from 'node:sqlite';
+import { createClient } from '@libsql/client';
 import { join } from 'path';
 import { mkdirSync, existsSync } from 'fs';
 
-// On Vercel the project root is read-only; use /tmp instead
-const dataDir = process.env.VERCEL ? '/tmp' : join(process.cwd(), 'data');
-if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
+function makeClient() {
+  if (process.env.TURSO_DATABASE_URL) {
+    return createClient({
+      url: process.env.TURSO_DATABASE_URL,
+      authToken: process.env.TURSO_AUTH_TOKEN,
+    });
+  }
+  // local dev: use a local SQLite file
+  const dataDir = join(process.cwd(), 'data');
+  if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
+  return createClient({ url: `file:${join(dataDir, 'jas.db')}` });
+}
 
-const db = new DatabaseSync(join(dataDir, 'jas.db'));
+const client = makeClient();
 
-db.exec('PRAGMA journal_mode = WAL');
-db.exec(`
+const ready = client.execute(`
   CREATE TABLE IF NOT EXISTS sightings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     created_at TEXT NOT NULL,
@@ -35,30 +43,40 @@ export type Sighting = {
   threat_level: 'Spotted' | 'Approaching' | 'RUN';
 };
 
-export const getSightings = (all = false): Sighting[] => {
+export async function getSightings(all = false): Promise<Sighting[]> {
+  await ready;
   if (all) {
-    return db.prepare('SELECT * FROM sightings ORDER BY created_at DESC').all() as Sighting[];
+    const res = await client.execute('SELECT * FROM sightings ORDER BY created_at DESC');
+    return res.rows as unknown as Sighting[];
   }
   const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-  return db.prepare('SELECT * FROM sightings WHERE created_at >= ? ORDER BY created_at DESC').all(cutoff) as Sighting[];
-};
+  const res = await client.execute({
+    sql: 'SELECT * FROM sightings WHERE created_at >= ? ORDER BY created_at DESC',
+    args: [cutoff],
+  });
+  return res.rows as unknown as Sighting[];
+}
 
-export const getLatestSighting = (): Sighting | null => {
-  return (db.prepare('SELECT * FROM sightings ORDER BY created_at DESC LIMIT 1').get() as Sighting) ?? null;
-};
+export async function getLatestSighting(): Promise<Sighting | null> {
+  await ready;
+  const res = await client.execute('SELECT * FROM sightings ORDER BY created_at DESC LIMIT 1');
+  return (res.rows[0] as unknown as Sighting) ?? null;
+}
 
-export const insertSighting = (sighting: Omit<Sighting, 'id'>): Sighting & { id: number } => {
-  const result = db.prepare(
-    'INSERT INTO sightings (created_at, location_name, lat, lng, description, photo_path, reporter_name, threat_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-  ).run(
-    sighting.created_at,
-    sighting.location_name,
-    sighting.lat,
-    sighting.lng,
-    sighting.description,
-    sighting.photo_path,
-    sighting.reporter_name,
-    sighting.threat_level
-  );
-  return { id: Number(result.lastInsertRowid), ...sighting };
-};
+export async function insertSighting(sighting: Omit<Sighting, 'id'>): Promise<Sighting & { id: number }> {
+  await ready;
+  const res = await client.execute({
+    sql: 'INSERT INTO sightings (created_at, location_name, lat, lng, description, photo_path, reporter_name, threat_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    args: [
+      sighting.created_at,
+      sighting.location_name,
+      sighting.lat,
+      sighting.lng,
+      sighting.description,
+      sighting.photo_path,
+      sighting.reporter_name,
+      sighting.threat_level,
+    ],
+  });
+  return { id: Number(res.lastInsertRowid), ...sighting };
+}

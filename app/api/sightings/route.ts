@@ -19,7 +19,7 @@ const mapThreat = (value: string | null) => {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const all = url.searchParams.get('all') === 'true';
-  const sightings = getSightings(all);
+  const sightings = await getSightings(all);
   return NextResponse.json({ sightings });
 }
 
@@ -53,6 +53,6 @@ export async function POST(request: Request) {
     threat_level,
   };
 
-  const inserted = insertSighting(sighting);
+  const inserted = await insertSighting(sighting);
   return NextResponse.json({ sighting: inserted }, { status: 201 });
 }
