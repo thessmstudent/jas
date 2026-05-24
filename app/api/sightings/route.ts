@@ -6,9 +6,6 @@ import { mkdirSync, writeFileSync, existsSync } from 'fs';
 export const dynamic = 'force-dynamic';
 
 const uploadDir = join(process.cwd(), 'public', 'uploads');
-if (!existsSync(uploadDir)) {
-  mkdirSync(uploadDir, { recursive: true });
-}
 
 const mapThreat = (value: string | null) => {
   if (value === '⚠️ Approaching' || value === 'Approaching') return 'Approaching';
@@ -24,35 +21,45 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const formData = await request.formData();
-  const location_name = String(formData.get('location_name') || 'Unknown Location');
-  const lat = Number(formData.get('lat') || 36.0194);
-  const lng = Number(formData.get('lng') || -78.9207);
-  const description = String(formData.get('description') || '').slice(0, 280) || null;
-  const reporter_name = String(formData.get('reporter_name') || 'Anonymous Witness').trim() || 'Anonymous Witness';
-  const threat_level = mapThreat(String(formData.get('threat_level') || 'Spotted'));
-  const file = formData.get('photo');
-  let photo_path: string | null = null;
+  try {
+    const formData = await request.formData();
+    const location_name = String(formData.get('location_name') || 'Unknown Location');
+    const lat = Number(formData.get('lat') || 36.0194);
+    const lng = Number(formData.get('lng') || -78.9207);
+    const description = String(formData.get('description') || '').slice(0, 280) || null;
+    const reporter_name = String(formData.get('reporter_name') || 'Anonymous Witness').trim() || 'Anonymous Witness';
+    const threat_level = mapThreat(String(formData.get('threat_level') || 'Spotted'));
+    const file = formData.get('photo');
+    let photo_path: string | null = null;
 
-  if (file && typeof file !== 'string' && 'arrayBuffer' in file && file.size > 0) {
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name}`.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-    const path = join(uploadDir, filename);
-    writeFileSync(path, buffer);
-    photo_path = `/uploads/${filename}`;
+    if (file && typeof file !== 'string' && 'arrayBuffer' in file && file.size > 0) {
+      try {
+        if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name}`.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+        const path = join(uploadDir, filename);
+        writeFileSync(path, buffer);
+        photo_path = `/uploads/${filename}`;
+      } catch {
+        // photo storage not available in this environment
+      }
+    }
+
+    const sighting: Omit<Sighting, 'id'> = {
+      created_at: new Date().toISOString(),
+      location_name,
+      lat,
+      lng,
+      description,
+      photo_path,
+      reporter_name,
+      threat_level,
+    };
+
+    const inserted = await insertSighting(sighting);
+    return NextResponse.json({ sighting: inserted }, { status: 201 });
+  } catch (err) {
+    console.error('POST /api/sightings error:', err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
   }
-
-  const sighting: Omit<Sighting, 'id'> = {
-    created_at: new Date().toISOString(),
-    location_name,
-    lat,
-    lng,
-    description,
-    photo_path,
-    reporter_name,
-    threat_level,
-  };
-
-  const inserted = await insertSighting(sighting);
-  return NextResponse.json({ sighting: inserted }, { status: 201 });
 }
