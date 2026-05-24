@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -20,6 +20,15 @@ const pinIcon = L.divIcon({
 
 function PinPlacer({ onPlace }: { onPlace: (lat: number, lng: number) => void }) {
   useMapEvents({ click(e) { onPlace(e.latlng.lat, e.latlng.lng); } });
+  return null;
+}
+
+function InvalidateSize() {
+  const map = useMap();
+  useEffect(() => {
+    const t = setTimeout(() => map.invalidateSize(), 150);
+    return () => clearTimeout(t);
+  }, [map]);
   return null;
 }
 
@@ -190,6 +199,7 @@ export default function ReportModal({ open, onClose, onSubmit }: Props) {
                 <div className="overflow-hidden rounded-xl border border-slate-700/50" style={{ height: '200px' }}>
                   <MapContainer center={CENTER} zoom={17} scrollWheelZoom={false} className="h-full w-full" zoomControl={false}>
                     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="" />
+                    <InvalidateSize />
                     <PinPlacer onPlace={(la, ln) => { setLat(la); setLng(ln); setPinned(true); }} />
                     {pinned && <Marker position={[lat, lng]} icon={pinIcon} />}
                   </MapContainer>
@@ -213,6 +223,7 @@ export default function ReportModal({ open, onClose, onSubmit }: Props) {
               <div className="flex-1">
                 <MapContainer center={CENTER} zoom={17} scrollWheelZoom={false} className="h-full w-full min-h-[280px]" zoomControl={false}>
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="" />
+                  <InvalidateSize />
                   <PinPlacer onPlace={(la, ln) => { setLat(la); setLng(ln); setPinned(true); }} />
                   {pinned && <Marker position={[lat, lng]} icon={pinIcon} />}
                 </MapContainer>
