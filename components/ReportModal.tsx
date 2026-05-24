@@ -184,6 +184,21 @@ export default function ReportModal({ open, onClose, onSubmit }: Props) {
                 <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={handlePhoto} className="hidden" />
               </div>
 
+              {/* Mobile map pin */}
+              <div className="lg:hidden">
+                <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-[0.38em] text-slate-500">Pin Location</label>
+                <div className="overflow-hidden rounded-xl border border-slate-700/50" style={{ height: '200px' }}>
+                  <MapContainer center={CENTER} zoom={17} scrollWheelZoom={false} className="h-full w-full" zoomControl={false}>
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="" />
+                    <PinPlacer onPlace={(la, ln) => { setLat(la); setLng(ln); setPinned(true); }} />
+                    {pinned && <Marker position={[lat, lng]} icon={pinIcon} />}
+                  </MapContainer>
+                </div>
+                <p className="mt-1 font-mono text-[9px] tabular-nums text-amber-400/60">
+                  {pinned ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : 'Tap map to place pin'}
+                </p>
+              </div>
+
               {error && (
                 <p className="rounded-xl border border-red-900/40 bg-red-950/20 px-4 py-2 font-mono text-xs text-red-400">{error}</p>
               )}
